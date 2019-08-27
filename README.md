@@ -2,6 +2,11 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 # Reproduction for [coinbase/rest-hooks#125](https://github.com/coinbase/rest-hooks/issues/125)
 
+## Files
+
+- [`App.tsx`](./src/App.tsx)
+- [`backend.js`](./backend.js)
+
 ## Available Scripts
 
 In the project directory, you can run:
