@@ -1,5 +1,12 @@
 import React, { Suspense } from 'react';
-import { CacheProvider, NetworkErrorBoundary, Resource, useResource, useFetcher } from 'rest-hooks';
+import {
+  CacheProvider,
+  NetworkErrorBoundary,
+  Resource,
+  useResource,
+  useFetcher,
+  MutateShape, SchemaDetail, AbstractInstanceType,
+} from 'rest-hooks';
 import './App.css';
 
 interface User {
@@ -10,20 +17,46 @@ class ServiceConnection extends Resource {
   readonly user: User | null = null;
 
   pk() {
-    return 1;
+    return null;
   }
 
   static urlRoot = '/api/service/connect';
 
-  static url() {
-    return ServiceConnection.urlRoot;
+  static connectShape<T extends typeof Resource>(
+    this: T,
+  ): MutateShape<SchemaDetail<AbstractInstanceType<T>>> {
+    return {
+      ...this.updateShape(),
+      getFetchKey: () => {
+        // globally uniquely identifying this particular request
+        return `POST ${this.urlRoot}`;
+      },
+      fetch: () => {
+        return this.fetch('post', this.urlRoot);
+      },
+    };
+  }
+
+  static disconnectShape<T extends typeof Resource>(
+    this: T,
+  ): MutateShape<SchemaDetail<AbstractInstanceType<T>>> {
+    return {
+      ...this.updateShape(),
+      getFetchKey: () => {
+        // globally uniquely identifying this particular request
+        return `DELETE ${this.urlRoot}`;
+      },
+      fetch: () => {
+        return this.fetch('delete', this.urlRoot);
+      },
+    };
   }
 }
 
 function Playground() {
   const service = useResource(ServiceConnection.detailShape(), {});
-  const connect = useFetcher(ServiceConnection.createShape());
-  const disconnect = useFetcher(ServiceConnection.deleteShape());
+  const connect = useFetcher(ServiceConnection.connectShape());
+  const disconnect = useFetcher(ServiceConnection.disconnectShape());
 
   return (
     <>
@@ -34,7 +67,7 @@ function Playground() {
       </p>
       <pre>{JSON.stringify(service, null, 2)}</pre>
     </>
-  )
+  );
 }
 
 const App: React.FC = () => {
@@ -49,6 +82,6 @@ const App: React.FC = () => {
       </div>
     </CacheProvider>
   );
-}
+};
 
 export default App;
